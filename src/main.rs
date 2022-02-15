@@ -5,11 +5,11 @@ use game::*;
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let game = Game::new();
+    let mut game = Game::new(2);
 
     // TODO make a menu for leaving when Escape is pressed
     while !is_key_pressed(KeyCode::Escape) {
-        game.board.draw();
+        game.play();
 
         next_frame().await;
     }

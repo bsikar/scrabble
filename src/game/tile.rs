@@ -1,4 +1,8 @@
-#[derive(Copy, Clone, Debug)]
+use macroquad::prelude::*;
+
+use crate::game::board::{LETTER_SIZE, STEP, TAN};
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[rustfmt::skip]
 pub enum Tile {
     A, B, C, D, E, F, G,
@@ -46,6 +50,19 @@ impl Tile {
         ]
         .iter()
     }
+
+    pub fn draw(&self, x: f32, y: f32) {
+        let text = self.into();
+        let text_size = measure_text(text, None, LETTER_SIZE as u16, 1.0);
+        draw_rectangle(x, y, STEP, STEP, TAN);
+        draw_text(
+            text,
+            x + STEP / 2.0 - text_size.width / 2.0,
+            y + STEP / 2.0 + text_size.height / 2.0,
+            LETTER_SIZE,
+            DARKGRAY,
+        );
+    }
 }
 
 impl From<char> for Tile {
@@ -80,6 +97,42 @@ impl From<char> for Tile {
             'y' => Y,
             'z' => Z,
             _ => Blank,
+        }
+    }
+}
+
+impl From<&Tile> for &str {
+    fn from(t: &Tile) -> &'static str {
+        use Tile::*;
+
+        match t {
+            A => "A",
+            B => "B",
+            C => "C",
+            D => "D",
+            E => "E",
+            F => "F",
+            G => "G",
+            H => "H",
+            I => "I",
+            J => "J",
+            K => "K",
+            L => "L",
+            M => "M",
+            N => "N",
+            O => "O",
+            P => "P",
+            Q => "Q",
+            R => "R",
+            S => "S",
+            T => "T",
+            U => "U",
+            V => "V",
+            W => "W",
+            X => "X",
+            Y => "Y",
+            Z => "Z",
+            _ => "",
         }
     }
 }

@@ -1,14 +1,20 @@
 use macroquad::color_u8;
 use macroquad::prelude::*;
 
-const RED: Color = color_u8!(255, 104, 83, 255);
-const LIGHT_BLUE: Color = color_u8!(183, 208, 204, 255);
-const BLUE: Color = color_u8!(44, 150, 181, 255);
-const PINK: Color = color_u8!(237, 177, 167, 255);
-const TAN: Color = color_u8!(198, 192, 168, 255);
-const BACKGROUND: Color = color_u8!(43, 42, 51, 255);
+use super::player::*;
+use super::tile::*;
 
-const STEP: f32 = 810.0 / 15.0;
+pub const RED: Color = color_u8!(255, 104, 83, 255);
+pub const LIGHT_BLUE: Color = color_u8!(183, 208, 204, 255);
+pub const BLUE: Color = color_u8!(44, 150, 181, 255);
+pub const PINK: Color = color_u8!(237, 177, 167, 255);
+pub const TAN: Color = color_u8!(198, 192, 168, 255);
+pub const BACKGROUND: Color = color_u8!(43, 42, 51, 255);
+
+pub const STEP: f32 = 810.0 / 15.0;
+pub const LETTER_SIZE: f32 = STEP;
+pub const LETTER_SPACE: f32 = 50.0;
+pub const SELECTED_TILE_GLOW_THICKNESS: f32 = 20.0;
 
 const TRIPLE_WORD: &[(usize, usize)] = &[
     (0, 0),
@@ -82,14 +88,91 @@ const DOUBLE_WORD: &[(usize, usize)] = &[
     (4 * STEP as usize, 10 * STEP as usize),
 ];
 
-pub struct Board;
+pub struct Board {
+    board: [[Option<Tile>; 15]; 15],
+}
 
 impl Board {
     pub fn new() -> Board {
-        Board
+        Board {
+            board: [[None; 15]; 15],
+        }
     }
 
-    pub fn draw(&self) {
+    pub fn draw(&self, player: &Player) {
+        self.draw_board();
+        self.draw_rack(player);
+        self.draw_tiles();
+    }
+
+    pub fn draw_tiles(&self) {
+        for (i, row) in self.board.iter().enumerate() {
+            for (_, tile) in row.iter().enumerate() {
+                let i = i as f32;
+                let x = screen_width() / 2.0 + i * STEP + i * LETTER_SPACE;
+                let y = screen_height() - 2.0 * STEP;
+                if let Some(tile) = tile {
+                    tile.draw(x, y);
+                }
+            }
+        }
+    }
+
+    pub fn draw_rack(&self, player: &Player) {
+        for (i, tile) in player.tiles.iter().enumerate() {
+            let i = i as f32;
+            let len = player.tiles.len() as f32;
+            let x = screen_width() / 2.0
+                - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE)
+                + i * STEP
+                + i * LETTER_SPACE;
+            let y = screen_height() - 2.0 * STEP;
+            tile.draw(x, y);
+
+            if let Some(selected_tile) = player.selected_tile {
+                if selected_tile == i as usize {
+                    let x = x - SELECTED_TILE_GLOW_THICKNESS;
+                    let y = y - SELECTED_TILE_GLOW_THICKNESS;
+                    let w = STEP + 2.0 * SELECTED_TILE_GLOW_THICKNESS;
+                    let h = STEP + 2.0 * SELECTED_TILE_GLOW_THICKNESS;
+                    draw_rectangle_lines(x, y, w, h, SELECTED_TILE_GLOW_THICKNESS, GOLD);
+                }
+            }
+
+        }
+    }
+
+    pub fn get_rack_tile(&self, x: f32, y: f32, player: &Player) -> Option<usize> {
+        let len = player.tiles.len() as f32;
+        let x_lower =
+            screen_width() / 2.0 - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE);
+        let x_upper = x_lower + len * STEP + (len - 1.0) * LETTER_SPACE;
+
+        let y_lower = screen_height() - 2.0 * STEP;
+        let y_upper = y_lower + STEP;
+
+        if (x_lower..=x_upper).contains(&x) && (y_lower..=y_upper).contains(&y) {
+            for (i, tile) in player.tiles.iter().enumerate() {
+                let i = i as f32;
+                let len = player.tiles.len() as f32;
+                let x_lower = screen_width() / 2.0
+                    - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE)
+                    + i * STEP
+                    + i * LETTER_SPACE;
+                let y_lower = screen_height() - 2.0 * STEP;
+                let x_upper = x_lower + STEP;
+                let y_upper = y_lower + STEP;
+
+                if (x_lower..=x_upper).contains(&x) && (y_lower..=y_upper).contains(&y) {
+                    return Some(i as usize);
+                }
+            }
+        }
+
+        None
+    }
+
+    pub fn draw_board(&self) {
         clear_background(BACKGROUND);
 
         for i in (200..=screen_width() as usize - 200).step_by(STEP as usize) {
