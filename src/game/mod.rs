@@ -83,16 +83,27 @@ impl Game {
 
     fn handle_movement(&mut self) {
         if is_mouse_button_pressed(MouseButton::Left) {
-            let mouse_pos = mouse_position();
-            let selected =
-                self.board
-                    .get_rack_tile(mouse_pos.0, mouse_pos.1, &self.players[0]);
+            self.select_tile();
+            self.place_tile();
+        }
+    }
 
-            if selected == self.players[0].selected_tile {
-                self.players[0].selected_tile = None;
-            } else {
-                self.players[0].selected_tile = selected;
-            }
+    fn place_tile(&mut self) {
+        let mouse_pos = mouse_position();
+        self.board
+            .place_tile(mouse_pos.0, mouse_pos.1, &mut self.players[0]);
+    }
+
+    fn select_tile(&mut self) {
+        let mouse_pos = mouse_position();
+        let selected = self
+            .board
+            .get_rack_tile(mouse_pos.0, mouse_pos.1, &self.players[0]);
+
+        if selected == self.players[0].selected_tile {
+            self.players[0].selected_tile = None;
+        } else if selected != None {
+            self.players[0].selected_tile = selected;
         }
     }
 }

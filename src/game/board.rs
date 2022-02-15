@@ -16,76 +16,76 @@ pub const LETTER_SIZE: f32 = STEP;
 pub const LETTER_SPACE: f32 = 50.0;
 pub const SELECTED_TILE_GLOW_THICKNESS: f32 = 20.0;
 
-const TRIPLE_WORD: &[(usize, usize)] = &[
+const TRIPLE_WORD: &[(u8, u8)] = &[
     (0, 0),
-    (0, 7 * STEP as usize),
-    (0, 14 * STEP as usize),
-    (7 * STEP as usize, 0),
-    (7 * STEP as usize, 14 * STEP as usize),
-    (14 * STEP as usize, 0),
-    (14 * STEP as usize, 7 * STEP as usize),
-    (14 * STEP as usize, 14 * STEP as usize),
+    (0, 7),
+    (0, 14),
+    (7, 0),
+    (7, 14),
+    (14, 0),
+    (14, 7),
+    (14, 14),
 ];
 
-const DOUBLE_LETTER: &[(usize, usize)] = &[
-    (0, 3 * STEP as usize),
-    (0, 11 * STEP as usize),
-    (3 * STEP as usize, 0),
-    (3 * STEP as usize, 14 * STEP as usize),
-    (11 * STEP as usize, 0),
-    (11 * STEP as usize, 14 * STEP as usize),
-    (14 * STEP as usize, 3 * STEP as usize),
-    (14 * STEP as usize, 11 * STEP as usize),
-    (2 * STEP as usize, 6 * STEP as usize),
-    (3 * STEP as usize, 7 * STEP as usize),
-    (2 * STEP as usize, 8 * STEP as usize),
-    (12 * STEP as usize, 6 * STEP as usize),
-    (11 * STEP as usize, 7 * STEP as usize),
-    (12 * STEP as usize, 8 * STEP as usize),
-    (6 * STEP as usize, 2 * STEP as usize),
-    (7 * STEP as usize, 3 * STEP as usize),
-    (8 * STEP as usize, 2 * STEP as usize),
-    (6 * STEP as usize, 12 * STEP as usize),
-    (7 * STEP as usize, 11 * STEP as usize),
-    (8 * STEP as usize, 12 * STEP as usize),
-    (8 * STEP as usize, 8 * STEP as usize),
-    (6 * STEP as usize, 6 * STEP as usize),
-    (8 * STEP as usize, 6 * STEP as usize),
-    (6 * STEP as usize, 8 * STEP as usize),
+const DOUBLE_LETTER: &[(u8, u8)] = &[
+    (0, 3),
+    (0, 11),
+    (3, 0),
+    (3, 14),
+    (11, 0),
+    (11, 14),
+    (14, 3),
+    (14, 11),
+    (2, 6),
+    (3, 7),
+    (2, 8),
+    (12, 6),
+    (11, 7),
+    (12, 8),
+    (6, 2),
+    (7, 3),
+    (8, 2),
+    (6, 12),
+    (7, 11),
+    (8, 12),
+    (8, 8),
+    (6, 6),
+    (8, 6),
+    (6, 8),
 ];
 
-const TRIPLE_LETTER: &[(usize, usize)] = &[
-    (STEP as usize, 5 * STEP as usize),
-    (STEP as usize, 9 * STEP as usize),
-    (5 * STEP as usize, 5 * STEP as usize),
-    (5 * STEP as usize, 9 * STEP as usize),
-    (9 * STEP as usize, 5 * STEP as usize),
-    (9 * STEP as usize, 9 * STEP as usize),
-    (13 * STEP as usize, 5 * STEP as usize),
-    (13 * STEP as usize, 9 * STEP as usize),
-    (5 * STEP as usize, STEP as usize),
-    (9 * STEP as usize, STEP as usize),
-    (5 * STEP as usize, 13 * STEP as usize),
-    (9 * STEP as usize, 13 * STEP as usize),
+const TRIPLE_LETTER: &[(u8, u8)] = &[
+    (1, 5),
+    (1, 9),
+    (5, 5),
+    (5, 9),
+    (9, 5),
+    (9, 9),
+    (13, 5),
+    (13, 9),
+    (5, 1),
+    (9, 1),
+    (5, 13),
+    (9, 13),
 ];
 
-const DOUBLE_WORD: &[(usize, usize)] = &[
-    (STEP as usize, STEP as usize),
-    (STEP as usize, 13 * STEP as usize),
-    (13 * STEP as usize, STEP as usize),
-    (13 * STEP as usize, 13 * STEP as usize),
-    (2 * STEP as usize, 2 * STEP as usize),
-    (2 * STEP as usize, 12 * STEP as usize),
-    (12 * STEP as usize, 2 * STEP as usize),
-    (12 * STEP as usize, 12 * STEP as usize),
-    (11 * STEP as usize, 3 * STEP as usize),
-    (11 * STEP as usize, 11 * STEP as usize),
-    (3 * STEP as usize, 3 * STEP as usize),
-    (3 * STEP as usize, 11 * STEP as usize),
-    (10 * STEP as usize, 4 * STEP as usize),
-    (10 * STEP as usize, 10 * STEP as usize),
-    (4 * STEP as usize, 4 * STEP as usize),
-    (4 * STEP as usize, 10 * STEP as usize),
+const DOUBLE_WORD: &[(u8, u8)] = &[
+    (1, 1),
+    (1, 13),
+    (13, 1),
+    (13, 13),
+    (2, 2),
+    (2, 12),
+    (12, 2),
+    (12, 12),
+    (11, 3),
+    (11, 11),
+    (3, 3),
+    (3, 11),
+    (10, 4),
+    (10, 10),
+    (4, 4),
+    (4, 10),
 ];
 
 pub struct Board {
@@ -100,20 +100,38 @@ impl Board {
     }
 
     pub fn draw(&self, player: &Player) {
-        self.draw_board();
-        self.draw_rack(player);
         self.draw_tiles();
+        self.draw_rack(player);
     }
 
     pub fn draw_tiles(&self) {
+        clear_background(BACKGROUND);
+
         for (i, row) in self.board.iter().enumerate() {
-            for (_, tile) in row.iter().enumerate() {
-                let i = i as f32;
-                let x = screen_width() / 2.0 + i * STEP + i * LETTER_SPACE;
-                let y = screen_height() - 2.0 * STEP;
-                if let Some(tile) = tile {
-                    tile.draw(x, y);
+            for (o, tile) in row.iter().enumerate() {
+                let x = o as f32 * STEP + 200.0;
+                let y = i as f32 * STEP + 200.0;
+                let i = i as u8;
+                let o = o as u8;
+                let tile = tile.unwrap_or(Tile::Blank);
+
+                if i == 7 && o == 7 {
+                    tile.draw(x, y, TAN);
+                } else if TRIPLE_WORD.contains(&(i, o)) {
+                    tile.draw(x, y, RED);
+                } else if DOUBLE_LETTER.contains(&(i, o)) {
+                    tile.draw(x, y, LIGHT_BLUE);
+                } else if TRIPLE_LETTER.contains(&(i, o)) {
+                    tile.draw(x, y, BLUE);
+                } else if DOUBLE_WORD.contains(&(i, o)) {
+                    tile.draw(x, y, PINK);
+                } else {
+                    if let Some(tile) = self.board[i as usize][o as usize] {
+                        tile.draw(x, y, TAN);
+                    }
                 }
+
+                draw_rectangle_lines(x, y, STEP, STEP, 5., DARKGRAY);
             }
         }
     }
@@ -127,7 +145,7 @@ impl Board {
                 + i * STEP
                 + i * LETTER_SPACE;
             let y = screen_height() - 2.0 * STEP;
-            tile.draw(x, y);
+            tile.draw(x, y, TAN);
 
             if let Some(selected_tile) = player.selected_tile {
                 if selected_tile == i as usize {
@@ -138,7 +156,6 @@ impl Board {
                     draw_rectangle_lines(x, y, w, h, SELECTED_TILE_GLOW_THICKNESS, GOLD);
                 }
             }
-
         }
     }
 
@@ -152,7 +169,7 @@ impl Board {
         let y_upper = y_lower + STEP;
 
         if (x_lower..=x_upper).contains(&x) && (y_lower..=y_upper).contains(&y) {
-            for (i, tile) in player.tiles.iter().enumerate() {
+            for (i, _) in player.tiles.iter().enumerate() {
                 let i = i as f32;
                 let len = player.tiles.len() as f32;
                 let x_lower = screen_width() / 2.0
@@ -172,33 +189,24 @@ impl Board {
         None
     }
 
-    pub fn draw_board(&self) {
-        clear_background(BACKGROUND);
+    pub fn place_tile(&mut self, x: f32, y: f32, player: &mut Player) {
+        if let None = player.selected_tile {
+            return;
+        }
 
-        for i in (200..=screen_width() as usize - 200).step_by(STEP as usize) {
-            let i = i as f32;
-            for o in (200..=screen_height() as usize - 200).step_by(STEP as usize) {
-                let o = o as f32;
+        let lower_x = 200.0;
+        let lower_y = 200.0;
+        let upper_x = screen_width() - 200.0 + 10.0;
+        let upper_y = screen_height() - 200.0 + 10.0;
 
-                if i == 7.0 * STEP + 200.0 && o == 7.0 * STEP + 200.0 {
-                    draw_rectangle(i, o, STEP, STEP, TAN);
-                    continue;
-                } else if TRIPLE_WORD.contains(&(i as usize - 200, o as usize - 200)) {
-                    draw_rectangle(i, o, STEP, STEP, RED);
-                    continue;
-                } else if DOUBLE_LETTER.contains(&(i as usize - 200, o as usize - 200)) {
-                    draw_rectangle(i, o, STEP, STEP, LIGHT_BLUE);
-                    continue;
-                } else if TRIPLE_LETTER.contains(&(i as usize - 200, o as usize - 200)) {
-                    draw_rectangle(i, o, STEP, STEP, BLUE);
-                    continue;
-                } else if DOUBLE_WORD.contains(&(i as usize - 200, o as usize - 200)) {
-                    draw_rectangle(i, o, STEP, STEP, PINK);
-                    continue;
-                }
+        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+            let tile_index = player.selected_tile.unwrap();
+            let tile = player.tiles.remove(tile_index);
+            let row = ((y - lower_y) / STEP as f32) as usize;
+            let col = ((x - lower_x) / STEP as f32) as usize;
 
-                draw_rectangle_lines(i, o, STEP, STEP, 5., DARKGRAY);
-            }
+            self.board[row][col] = Some(tile);
+            player.selected_tile = None;
         }
     }
 }

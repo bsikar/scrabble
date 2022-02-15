@@ -51,10 +51,10 @@ impl Tile {
         .iter()
     }
 
-    pub fn draw(&self, x: f32, y: f32) {
+    pub fn draw(&self, x: f32, y: f32, background: Color) {
         let text = self.into();
         let text_size = measure_text(text, None, LETTER_SIZE as u16, 1.0);
-        draw_rectangle(x, y, STEP, STEP, TAN);
+        draw_rectangle(x, y, STEP, STEP, background);
         draw_text(
             text,
             x + STEP / 2.0 - text_size.width / 2.0,
