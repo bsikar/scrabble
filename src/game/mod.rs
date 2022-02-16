@@ -68,7 +68,7 @@ impl Game {
         if self.words.contains(word) {
             Ok(word
                 .chars()
-                .map(|x| From::from(x))
+                .map(From::from)
                 .fold(0, |i, x: Tile| i + x.get_value() as u16))
         } else {
             Err(())
@@ -83,9 +83,35 @@ impl Game {
 
     fn handle_movement(&mut self) {
         if is_mouse_button_pressed(MouseButton::Left) {
-            self.select_tile();
+            self.select_tile_from_rack();
+            self.select_tile_from_board();
             self.place_tile();
+            self.swap_tile_on_board();
+            self.swap_tile_on_rack();
+        } else if is_mouse_button_pressed(MouseButton::Right) {
+            self.select_tile_from_board();
+            self.remove_tile_from_board();
         }
+    }
+
+    fn remove_tile_from_board(&mut self) {
+        let mouse_pos = mouse_position();
+
+        self.board
+            .remove_tile_from_board(mouse_pos.0, mouse_pos.1, &mut self.players[0]);
+    }
+
+    fn swap_tile_on_board(&mut self) {
+        let mouse_pos = mouse_position();
+
+        self.board.swap_tile_on_board(mouse_pos.0, mouse_pos.1);
+    }
+
+    fn swap_tile_on_rack(&mut self) {
+        let mouse_pos = mouse_position();
+
+        self.board
+            .swap_tile_on_rack(mouse_pos.0, mouse_pos.1, &mut self.players[0]);
     }
 
     fn place_tile(&mut self) {
@@ -94,16 +120,41 @@ impl Game {
             .place_tile(mouse_pos.0, mouse_pos.1, &mut self.players[0]);
     }
 
-    fn select_tile(&mut self) {
+    fn select_tile_from_board(&mut self) {
+        let mouse_pos = mouse_position();
+        let selected = self.board.get_board_tile(mouse_pos.0, mouse_pos.1);
+
+        if selected.is_none() {
+            return;
+        }
+        let selected = selected.unwrap();
+
+        if let SelectedTile::Board(x, y) = self.board.selected_tile {
+            if selected == (x, y) {
+                self.board.selected_tile = SelectedTile::None;
+            }
+        } else {
+            self.board.selected_tile = SelectedTile::Board(selected.0, selected.1);
+        }
+    }
+
+    fn select_tile_from_rack(&mut self) {
         let mouse_pos = mouse_position();
         let selected = self
             .board
             .get_rack_tile(mouse_pos.0, mouse_pos.1, &self.players[0]);
 
-        if selected == self.players[0].selected_tile {
-            self.players[0].selected_tile = None;
-        } else if selected != None {
-            self.players[0].selected_tile = selected;
+        if selected.is_none() {
+            return;
+        }
+        let selected = selected.unwrap();
+
+        if let SelectedTile::Rack(tile) = self.board.selected_tile {
+            if selected == tile {
+                self.board.selected_tile = SelectedTile::None;
+            }
+        } else {
+            self.board.selected_tile = SelectedTile::Rack(selected);
         }
     }
 }

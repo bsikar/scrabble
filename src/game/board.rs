@@ -88,14 +88,23 @@ const DOUBLE_WORD: &[(u8, u8)] = &[
     (4, 10),
 ];
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SelectedTile {
+    None,
+    Board(usize, usize),
+    Rack(usize),
+}
+
 pub struct Board {
     board: [[Option<Tile>; 15]; 15],
+    pub selected_tile: SelectedTile,
 }
 
 impl Board {
     pub fn new() -> Board {
         Board {
             board: [[None; 15]; 15],
+            selected_tile: SelectedTile::None,
         }
     }
 
@@ -125,10 +134,12 @@ impl Board {
                     tile.draw(x, y, BLUE);
                 } else if DOUBLE_WORD.contains(&(i, o)) {
                     tile.draw(x, y, PINK);
-                } else {
-                    if let Some(tile) = self.board[i as usize][o as usize] {
-                        tile.draw(x, y, TAN);
-                    }
+                } else if let Some(tile) = self.board[i as usize][o as usize] {
+                    tile.draw(x, y, TAN);
+                }
+
+                if self.selected_tile == SelectedTile::Board(i as usize, o as usize) {
+                    draw_rectangle_lines(x, y, STEP, STEP, SELECTED_TILE_GLOW_THICKNESS, GOLD);
                 }
 
                 draw_rectangle_lines(x, y, STEP, STEP, 5., DARKGRAY);
@@ -147,7 +158,7 @@ impl Board {
             let y = screen_height() - 2.0 * STEP;
             tile.draw(x, y, TAN);
 
-            if let Some(selected_tile) = player.selected_tile {
+            if let SelectedTile::Rack(selected_tile) = self.selected_tile {
                 if selected_tile == i as usize {
                     let x = x - SELECTED_TILE_GLOW_THICKNESS;
                     let y = y - SELECTED_TILE_GLOW_THICKNESS;
@@ -159,28 +170,46 @@ impl Board {
         }
     }
 
+    pub fn get_board_tile(&self, x: f32, y: f32) -> Option<(usize, usize)> {
+        let lower_x = 200.0;
+        let lower_y = 200.0;
+        let upper_x = screen_width() - 200.0 + 10.0;
+        let upper_y = screen_height() - 200.0 + 10.0;
+
+        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+            let row = ((y - lower_y) / STEP) as usize;
+            let col = ((x - lower_x) / STEP) as usize;
+
+            if let Some(_tile) = self.board[row][col] {
+                return Some((row, col));
+            }
+        }
+
+        None
+    }
+
     pub fn get_rack_tile(&self, x: f32, y: f32, player: &Player) -> Option<usize> {
         let len = player.tiles.len() as f32;
-        let x_lower =
+        let lower_x =
             screen_width() / 2.0 - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE);
-        let x_upper = x_lower + len * STEP + (len - 1.0) * LETTER_SPACE;
+        let upper_x = lower_x + len * STEP + (len - 1.0) * LETTER_SPACE;
 
-        let y_lower = screen_height() - 2.0 * STEP;
-        let y_upper = y_lower + STEP;
+        let lower_y = screen_height() - 2.0 * STEP;
+        let upper_y = lower_y + STEP;
 
-        if (x_lower..=x_upper).contains(&x) && (y_lower..=y_upper).contains(&y) {
+        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
             for (i, _) in player.tiles.iter().enumerate() {
                 let i = i as f32;
                 let len = player.tiles.len() as f32;
-                let x_lower = screen_width() / 2.0
+                let lower_x = screen_width() / 2.0
                     - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE)
                     + i * STEP
                     + i * LETTER_SPACE;
-                let y_lower = screen_height() - 2.0 * STEP;
-                let x_upper = x_lower + STEP;
-                let y_upper = y_lower + STEP;
+                let lower_y = screen_height() - 2.0 * STEP;
+                let upper_x = lower_x + STEP;
+                let upper_y = lower_y + STEP;
 
-                if (x_lower..=x_upper).contains(&x) && (y_lower..=y_upper).contains(&y) {
+                if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
                     return Some(i as usize);
                 }
             }
@@ -190,7 +219,7 @@ impl Board {
     }
 
     pub fn place_tile(&mut self, x: f32, y: f32, player: &mut Player) {
-        if let None = player.selected_tile {
+        if let SelectedTile::None = self.selected_tile {
             return;
         }
 
@@ -200,13 +229,98 @@ impl Board {
         let upper_y = screen_height() - 200.0 + 10.0;
 
         if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
-            let tile_index = player.selected_tile.unwrap();
-            let tile = player.tiles.remove(tile_index);
+            if let SelectedTile::Rack(selected_tile) = self.selected_tile {
+                let tile = player.tiles.remove(selected_tile);
+                let row = ((y - lower_y) / STEP as f32) as usize;
+                let col = ((x - lower_x) / STEP as f32) as usize;
+
+                self.board[row][col] = Some(tile);
+                self.selected_tile = SelectedTile::None;
+            }
+        }
+    }
+
+    pub fn remove_tile_from_board(&mut self, x: f32, y: f32, player: &mut Player) {
+        if let SelectedTile::None = self.selected_tile {
+            return;
+        }
+
+        let lower_x = 200.0;
+        let lower_y = 200.0;
+        let upper_x = screen_width() - 200.0 + 10.0;
+        let upper_y = screen_height() - 200.0 + 10.0;
+
+        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
             let row = ((y - lower_y) / STEP as f32) as usize;
             let col = ((x - lower_x) / STEP as f32) as usize;
+            if self.board[row][col].is_some() {
+                player.tiles.push(self.board[row][col].unwrap());
+                self.board[row][col] = None;
 
-            self.board[row][col] = Some(tile);
-            player.selected_tile = None;
+                if SelectedTile::Board(row, col) == self.selected_tile {
+                    self.selected_tile = SelectedTile::None;
+                }
+            }
+        }
+    }
+
+    pub fn swap_tile_on_board(&mut self, x: f32, y: f32) {
+        if let SelectedTile::None = self.selected_tile {
+            return;
+        }
+
+        let lower_x = 200.0;
+        let lower_y = 200.0;
+        let upper_x = screen_width() - 200.0 + 10.0;
+        let upper_y = screen_height() - 200.0 + 10.0;
+
+        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+            let row = ((y - lower_y) / STEP as f32) as usize;
+            let col = ((x - lower_x) / STEP as f32) as usize;
+            if let Some(tile) = self.board[row][col] {
+                if let SelectedTile::Board(selected_row, selected_col) = self.selected_tile {
+                    let tmp = self.board[selected_row][selected_col];
+                    self.board[selected_row][selected_col] = Some(tile);
+                    self.board[row][col] = tmp;
+                    self.selected_tile = SelectedTile::Board(row, col);
+                }
+            }
+        }
+    }
+
+    pub fn swap_tile_on_rack(&mut self, x: f32, y: f32, player: &mut Player) {
+        if let SelectedTile::None = self.selected_tile {
+            return;
+        }
+
+        let len = player.tiles.len() as f32;
+        let lower_x =
+            screen_width() / 2.0 - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE);
+        let upper_x = lower_x + len * STEP + (len - 1.0) * LETTER_SPACE;
+
+        let lower_y = screen_height() - 2.0 * STEP;
+        let upper_y = lower_y + STEP;
+
+        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+            for (i, _) in player.tiles.iter().enumerate() {
+                let i = i as f32;
+                let len = player.tiles.len() as f32;
+                let lower_x = screen_width() / 2.0
+                    - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE)
+                    + i * STEP
+                    + i * LETTER_SPACE;
+                let lower_y = screen_height() - 2.0 * STEP;
+                let upper_x = lower_x + STEP;
+                let upper_y = lower_y + STEP;
+
+                if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+                    if let SelectedTile::Rack(tile) = self.selected_tile {
+                        player.tiles.swap(i as usize, tile);
+                        self.selected_tile = SelectedTile::Rack(i as usize);
+                        return;
+                    }
+                }
+            }
         }
     }
 }

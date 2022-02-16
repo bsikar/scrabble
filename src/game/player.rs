@@ -4,7 +4,6 @@ use ::rand::{rngs::ThreadRng, Rng};
 pub struct Player {
     pub tiles: Vec<Tile>,
     pub score: u32,
-    pub selected_tile: Option<usize>,
 }
 
 impl Player {
@@ -12,7 +11,6 @@ impl Player {
         Player {
             tiles: vec![],
             score: 0,
-            selected_tile: None,
         }
     }
 

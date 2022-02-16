@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::game::board::{LETTER_SIZE, STEP, TAN};
+use crate::game::board::{LETTER_SIZE, STEP};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[rustfmt::skip]
