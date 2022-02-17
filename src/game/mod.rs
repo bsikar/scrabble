@@ -1,4 +1,4 @@
-use ::rand::{self, rngs::ThreadRng};
+use ::rand;
 use hashbrown::HashSet;
 use macroquad::prelude::*;
 use rust_embed::RustEmbed;
@@ -17,17 +17,23 @@ use board::*;
 mod player;
 use player::*;
 
+mod screens;
+use screens::*;
+
 pub struct Game {
     pub tile_bag: Vec<Tile>,
     pub score: u32,
     pub words: HashSet<String>,
     pub board: Board,
-    pub players: Vec<Player>,
-    rng: ThreadRng,
+    pub players: [Player; 2],
+    pub screen: Screen,
 }
 
 impl Game {
-    pub fn new(num_players: u8) -> Game {
+    pub fn new() -> Game {
+        let screen = Screen::Start;
+        Screen::draw_start();
+
         let mut tile_bag = vec![];
         let mut rng = rand::thread_rng();
 
@@ -47,11 +53,10 @@ impl Game {
             words.insert(word.unwrap());
         }
 
-        let mut players = vec![];
-        for _ in 0..num_players {
-            let mut player = Player::new();
+        let mut players = [Player::new(), Player::new()];
+
+        for player in players.iter_mut() {
             player.fill_tiles(&mut tile_bag, &mut rng);
-            players.push(player);
         }
 
         Game {
@@ -60,24 +65,13 @@ impl Game {
             words,
             board: Board::new(),
             players,
-            rng,
-        }
-    }
-
-    pub fn calculate_score(&self, word: &str) -> Result<u16, ()> {
-        if self.words.contains(word) {
-            Ok(word
-                .chars()
-                .map(From::from)
-                .fold(0, |i, x: Tile| i + x.get_value() as u16))
-        } else {
-            Err(())
+            screen,
         }
     }
 
     pub fn play(&mut self) {
+        self.screen = self.screen.draw(self);
         self.board.consts.update(&self.players[0]);
-        self.board.draw(&self.players[0]);
 
         self.handle_movement();
     }

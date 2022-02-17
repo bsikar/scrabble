@@ -4,12 +4,13 @@ use macroquad::prelude::*;
 use super::player::*;
 use super::tile::*;
 
+use crate::game::BACKGROUND;
+
 pub const RED: Color = color_u8!(255, 104, 83, 255);
 pub const LIGHT_BLUE: Color = color_u8!(183, 208, 204, 255);
 pub const BLUE: Color = color_u8!(44, 150, 181, 255);
 pub const PINK: Color = color_u8!(237, 177, 167, 255);
 pub const TAN: Color = color_u8!(198, 192, 168, 255);
-pub const BACKGROUND: Color = color_u8!(43, 42, 51, 255);
 
 const TRIPLE_WORD: &[(u8, u8)] = &[
     (0, 0),
@@ -117,7 +118,7 @@ impl Consts {
 
         let len = 15.0;
         let rack_lower_x =
-            screen_width() / 2.0 - ((len / 2.0) * step + ((len - 1.0) / 2.0) * letter_space);
+            screen_width() / 2.0 - ((len / 2.0) * step + ((len - 2.0) / 2.0) * letter_space);
         let rack_upper_x = rack_lower_x + len * step + (len - 1.0) * letter_space;
         let rack_lower_y = screen_height() / 2.0 + step * 7.0 + offset / 2.0;
         let rack_upper_y = rack_lower_y + step;
@@ -158,7 +159,7 @@ impl Consts {
 
         let len = player.tiles.len() as f32;
         let rack_lower_x = screen_width() / 2.0
-            - ((len / 2.0) * self.step + ((len - 1.0) / 2.0) * self.letter_space);
+            - ((len / 2.0) * self.step + ((len - 2.0) / 2.0) * self.letter_space);
         let rack_upper_x = rack_lower_x + len * self.step + (len - 1.0) * self.letter_space;
         let rack_lower_y = screen_height() / 2.0 + self.step * 7.0 + self.offset / 2.0;
         let rack_upper_y = rack_lower_y + self.step;
@@ -191,7 +192,6 @@ impl Board {
 
     pub fn draw(&self, player: &Player) {
         clear_background(BACKGROUND);
-
         self.draw_tiles();
         self.draw_rack(player);
     }
@@ -242,7 +242,7 @@ impl Board {
             let i = i as f32;
             let len = player.tiles.len() as f32;
             let x = screen_width() / 2.0
-                - ((len / 2.0) * self.consts.step + ((len - 1.0) / 2.0) * self.consts.letter_space)
+                - ((len / 2.0) * self.consts.step + ((len - 2.0) / 2.0) * self.consts.letter_space)
                 + i * self.consts.step
                 + i * self.consts.letter_space;
             let y = screen_height() / 2.0 + self.consts.step * 7.0 + self.consts.offset / 2.0;
@@ -288,12 +288,8 @@ impl Board {
         {
             for (i, _) in player.tiles.iter().enumerate() {
                 let i = i as f32;
-                let len = player.tiles.len() as f32;
-                let lower_x = screen_width() / 2.0
-                    - ((len / 2.0) * self.consts.step
-                        + ((len - 1.0) / 2.0) * self.consts.letter_space)
-                    + i * self.consts.step
-                    + i * self.consts.letter_space;
+                let lower_x =
+                    self.consts.rack_lower.0 + i * self.consts.step + i * self.consts.letter_space;
                 let upper_x = lower_x + self.consts.step;
 
                 if (lower_x..=upper_x).contains(&x)

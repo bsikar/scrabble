@@ -5,7 +5,7 @@ use game::*;
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut game = Game::new(2);
+    let mut game = Game::new();
 
     // TODO make a menu for leaving when Escape is pressed
     while !is_key_pressed(KeyCode::Escape) {
@@ -18,9 +18,8 @@ async fn main() {
 fn window_conf() -> Conf {
     Conf {
         window_title: "Scrabble".to_owned(),
-        window_width: 1200,
-        window_height: 1200,
-        //window_resizable: false,
+        window_width: 800,
+        window_height: 800,
         ..Default::default()
     }
 }
