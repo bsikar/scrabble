@@ -77,6 +77,10 @@ impl Game {
     }
 
     fn handle_movement(&mut self) {
+        if is_key_pressed(KeyCode::Escape) {
+            self.screen = Screen::Exit;
+        }
+
         if is_mouse_button_pressed(MouseButton::Left) {
             self.select_tile_from_rack();
             self.select_tile_from_board();

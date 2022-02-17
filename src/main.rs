@@ -7,8 +7,7 @@ use game::*;
 async fn main() {
     let mut game = Game::new();
 
-    // TODO make a menu for leaving when Escape is pressed
-    while !is_key_pressed(KeyCode::Escape) {
+    loop {
         game.play();
 
         next_frame().await;
