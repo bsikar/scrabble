@@ -1,9 +1,16 @@
 use super::tile::*;
 use ::rand::{rngs::ThreadRng, Rng};
+use std::default::Default;
 
 pub struct Player {
     pub tiles: Vec<Tile>,
     pub score: u32,
+}
+
+impl Default for Player {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Player {

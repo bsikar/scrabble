@@ -76,6 +76,7 @@ impl Game {
     }
 
     pub fn play(&mut self) {
+        self.board.consts.update(&self.players[0]);
         self.board.draw(&self.players[0]);
 
         self.handle_movement();

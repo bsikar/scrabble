@@ -11,11 +11,6 @@ pub const PINK: Color = color_u8!(237, 177, 167, 255);
 pub const TAN: Color = color_u8!(198, 192, 168, 255);
 pub const BACKGROUND: Color = color_u8!(43, 42, 51, 255);
 
-pub const STEP: f32 = 810.0 / 15.0;
-pub const LETTER_SIZE: f32 = STEP;
-pub const LETTER_SPACE: f32 = 50.0;
-pub const SELECTED_TILE_GLOW_THICKNESS: f32 = 20.0;
-
 const TRIPLE_WORD: &[(u8, u8)] = &[
     (0, 0),
     (0, 7),
@@ -88,6 +83,90 @@ const DOUBLE_WORD: &[(u8, u8)] = &[
     (4, 10),
 ];
 
+pub struct Consts {
+    pub step: f32,
+    pub letter_size: f32,
+    pub letter_space: f32,
+    pub selected_tile_glow_thickness: f32,
+    pub offset: f32,
+    pub board_upper: (f32, f32),
+    pub board_lower: (f32, f32),
+    pub rack_upper: (f32, f32),
+    pub rack_lower: (f32, f32),
+}
+
+impl Consts {
+    fn new() -> Consts {
+        let x = if screen_height() > screen_width() {
+            screen_width()
+        } else {
+            screen_height()
+        };
+        let offset = x / 6.0;
+        let step = x * (9.0 / 200.0);
+        let letter_size = step;
+        let letter_space = x / 24.0;
+        let selected_tile_glow_thickness = x / 60.0;
+
+        let board_lower_x = step + screen_width() / 2.0 - step * 7.0;
+        let board_upper_x = 14.0 * step + screen_width() / 2.0 - step * 7.0;
+        let board_lower_y = step + screen_height() / 2.0 - step * 7.0;
+        let board_upper_y = 14.0 * step + screen_height() / 2.0 - step * 7.0;
+        let board_upper = (board_upper_x, board_upper_y);
+        let board_lower = (board_lower_x, board_lower_y);
+
+        let len = 15.0;
+        let rack_lower_x =
+            screen_width() / 2.0 - ((len / 2.0) * step + ((len - 1.0) / 2.0) * letter_space);
+        let rack_upper_x = rack_lower_x + len * step + (len - 1.0) * letter_space;
+        let rack_lower_y = screen_height() / 2.0 + step * 7.0 + offset / 2.0;
+        let rack_upper_y = rack_lower_y + step;
+        let rack_upper = (rack_upper_x, rack_upper_y);
+        let rack_lower = (rack_lower_x, rack_lower_y);
+
+        Consts {
+            offset,
+            step,
+            letter_size,
+            letter_space,
+            selected_tile_glow_thickness,
+            board_upper,
+            board_lower,
+            rack_upper,
+            rack_lower,
+        }
+    }
+
+    pub fn update(&mut self, player: &Player) {
+        let x = if screen_height() > screen_width() {
+            screen_width()
+        } else {
+            screen_height()
+        };
+        self.offset = x / 6.0;
+        self.step = x * (9.0 / 200.0);
+        self.letter_size = self.step;
+        self.letter_space = x / 24.0;
+        self.selected_tile_glow_thickness = x / 60.0;
+
+        let board_lower_x = self.step + screen_width() / 2.0 - self.step * 8.0;
+        let board_upper_x = 14.0 * self.step + screen_width() / 2.0 - self.step * 6.0;
+        let board_lower_y = self.step + screen_height() / 2.0 - self.step * 8.0;
+        let board_upper_y = 14.0 * self.step + screen_height() / 2.0 - self.step * 6.0;
+        self.board_upper = (board_upper_x, board_upper_y);
+        self.board_lower = (board_lower_x, board_lower_y);
+
+        let len = player.tiles.len() as f32;
+        let rack_lower_x = screen_width() / 2.0
+            - ((len / 2.0) * self.step + ((len - 1.0) / 2.0) * self.letter_space);
+        let rack_upper_x = rack_lower_x + len * self.step + (len - 1.0) * self.letter_space;
+        let rack_lower_y = screen_height() / 2.0 + self.step * 7.0 + self.offset / 2.0;
+        let rack_upper_y = rack_lower_y + self.step;
+        self.rack_upper = (rack_upper_x, rack_upper_y);
+        self.rack_lower = (rack_lower_x, rack_lower_y);
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SelectedTile {
     None,
@@ -98,6 +177,7 @@ pub enum SelectedTile {
 pub struct Board {
     board: [[Option<Tile>; 15]; 15],
     pub selected_tile: SelectedTile,
+    pub consts: Consts,
 }
 
 impl Board {
@@ -105,44 +185,54 @@ impl Board {
         Board {
             board: [[None; 15]; 15],
             selected_tile: SelectedTile::None,
+            consts: Consts::new(),
         }
     }
 
     pub fn draw(&self, player: &Player) {
+        clear_background(BACKGROUND);
+
         self.draw_tiles();
         self.draw_rack(player);
     }
 
     pub fn draw_tiles(&self) {
-        clear_background(BACKGROUND);
-
         for (i, row) in self.board.iter().enumerate() {
             for (o, tile) in row.iter().enumerate() {
-                let x = o as f32 * STEP + 200.0;
-                let y = i as f32 * STEP + 200.0;
+                let x = o as f32 * self.consts.step + screen_width() / 2.0 - self.consts.step * 7.0;
+                let y =
+                    i as f32 * self.consts.step + screen_height() / 2.0 - self.consts.step * 7.0;
+
                 let i = i as u8;
                 let o = o as u8;
                 let tile = tile.unwrap_or(Tile::Blank);
 
                 if i == 7 && o == 7 {
-                    tile.draw(x, y, TAN);
+                    tile.draw(x, y, TAN, &self.consts);
                 } else if TRIPLE_WORD.contains(&(i, o)) {
-                    tile.draw(x, y, RED);
+                    tile.draw(x, y, RED, &self.consts);
                 } else if DOUBLE_LETTER.contains(&(i, o)) {
-                    tile.draw(x, y, LIGHT_BLUE);
+                    tile.draw(x, y, LIGHT_BLUE, &self.consts);
                 } else if TRIPLE_LETTER.contains(&(i, o)) {
-                    tile.draw(x, y, BLUE);
+                    tile.draw(x, y, BLUE, &self.consts);
                 } else if DOUBLE_WORD.contains(&(i, o)) {
-                    tile.draw(x, y, PINK);
+                    tile.draw(x, y, PINK, &self.consts);
                 } else if let Some(tile) = self.board[i as usize][o as usize] {
-                    tile.draw(x, y, TAN);
+                    tile.draw(x, y, TAN, &self.consts);
                 }
 
                 if self.selected_tile == SelectedTile::Board(i as usize, o as usize) {
-                    draw_rectangle_lines(x, y, STEP, STEP, SELECTED_TILE_GLOW_THICKNESS, GOLD);
+                    draw_rectangle_lines(
+                        x,
+                        y,
+                        self.consts.step,
+                        self.consts.step,
+                        self.consts.selected_tile_glow_thickness,
+                        GOLD,
+                    );
                 }
 
-                draw_rectangle_lines(x, y, STEP, STEP, 5., DARKGRAY);
+                draw_rectangle_lines(x, y, self.consts.step, self.consts.step, 5., DARKGRAY);
             }
         }
     }
@@ -152,33 +242,37 @@ impl Board {
             let i = i as f32;
             let len = player.tiles.len() as f32;
             let x = screen_width() / 2.0
-                - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE)
-                + i * STEP
-                + i * LETTER_SPACE;
-            let y = screen_height() - 2.0 * STEP;
-            tile.draw(x, y, TAN);
+                - ((len / 2.0) * self.consts.step + ((len - 1.0) / 2.0) * self.consts.letter_space)
+                + i * self.consts.step
+                + i * self.consts.letter_space;
+            let y = screen_height() / 2.0 + self.consts.step * 7.0 + self.consts.offset / 2.0;
+            tile.draw(x, y, TAN, &self.consts);
 
             if let SelectedTile::Rack(selected_tile) = self.selected_tile {
                 if selected_tile == i as usize {
-                    let x = x - SELECTED_TILE_GLOW_THICKNESS;
-                    let y = y - SELECTED_TILE_GLOW_THICKNESS;
-                    let w = STEP + 2.0 * SELECTED_TILE_GLOW_THICKNESS;
-                    let h = STEP + 2.0 * SELECTED_TILE_GLOW_THICKNESS;
-                    draw_rectangle_lines(x, y, w, h, SELECTED_TILE_GLOW_THICKNESS, GOLD);
+                    let x = x - self.consts.selected_tile_glow_thickness;
+                    let y = y - self.consts.selected_tile_glow_thickness;
+                    let w = self.consts.step + 2.0 * self.consts.selected_tile_glow_thickness;
+                    let h = self.consts.step + 2.0 * self.consts.selected_tile_glow_thickness;
+                    draw_rectangle_lines(
+                        x,
+                        y,
+                        w,
+                        h,
+                        self.consts.selected_tile_glow_thickness,
+                        GOLD,
+                    );
                 }
             }
         }
     }
 
     pub fn get_board_tile(&self, x: f32, y: f32) -> Option<(usize, usize)> {
-        let lower_x = 200.0;
-        let lower_y = 200.0;
-        let upper_x = screen_width() - 200.0 + 10.0;
-        let upper_y = screen_height() - 200.0 + 10.0;
-
-        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
-            let row = ((y - lower_y) / STEP) as usize;
-            let col = ((x - lower_x) / STEP) as usize;
+        if (self.consts.board_lower.0..=self.consts.board_upper.0).contains(&x)
+            && (self.consts.board_lower.1..=self.consts.board_upper.1).contains(&y)
+        {
+            let row = ((y - self.consts.board_lower.1) / self.consts.step) as usize;
+            let col = ((x - self.consts.board_lower.0) / self.consts.step) as usize;
 
             if let Some(_tile) = self.board[row][col] {
                 return Some((row, col));
@@ -189,27 +283,22 @@ impl Board {
     }
 
     pub fn get_rack_tile(&self, x: f32, y: f32, player: &Player) -> Option<usize> {
-        let len = player.tiles.len() as f32;
-        let lower_x =
-            screen_width() / 2.0 - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE);
-        let upper_x = lower_x + len * STEP + (len - 1.0) * LETTER_SPACE;
-
-        let lower_y = screen_height() - 2.0 * STEP;
-        let upper_y = lower_y + STEP;
-
-        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+        if (self.consts.rack_lower.0..=self.consts.rack_upper.0).contains(&x)
+            && (self.consts.rack_lower.1..=self.consts.rack_upper.1).contains(&y)
+        {
             for (i, _) in player.tiles.iter().enumerate() {
                 let i = i as f32;
                 let len = player.tiles.len() as f32;
                 let lower_x = screen_width() / 2.0
-                    - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE)
-                    + i * STEP
-                    + i * LETTER_SPACE;
-                let lower_y = screen_height() - 2.0 * STEP;
-                let upper_x = lower_x + STEP;
-                let upper_y = lower_y + STEP;
+                    - ((len / 2.0) * self.consts.step
+                        + ((len - 1.0) / 2.0) * self.consts.letter_space)
+                    + i * self.consts.step
+                    + i * self.consts.letter_space;
+                let upper_x = lower_x + self.consts.step;
 
-                if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+                if (lower_x..=upper_x).contains(&x)
+                    && (self.consts.rack_lower.1..=self.consts.rack_upper.1).contains(&y)
+                {
                     return Some(i as usize);
                 }
             }
@@ -223,16 +312,13 @@ impl Board {
             return;
         }
 
-        let lower_x = 200.0;
-        let lower_y = 200.0;
-        let upper_x = screen_width() - 200.0 + 10.0;
-        let upper_y = screen_height() - 200.0 + 10.0;
-
-        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+        if (self.consts.board_lower.0..=self.consts.board_upper.0).contains(&x)
+            && (self.consts.board_lower.1..=self.consts.board_upper.1).contains(&y)
+        {
             if let SelectedTile::Rack(selected_tile) = self.selected_tile {
                 let tile = player.tiles.remove(selected_tile);
-                let row = ((y - lower_y) / STEP as f32) as usize;
-                let col = ((x - lower_x) / STEP as f32) as usize;
+                let row = ((y - self.consts.board_lower.1) / self.consts.step as f32) as usize;
+                let col = ((x - self.consts.board_lower.0) / self.consts.step as f32) as usize;
 
                 self.board[row][col] = Some(tile);
                 self.selected_tile = SelectedTile::None;
@@ -245,14 +331,11 @@ impl Board {
             return;
         }
 
-        let lower_x = 200.0;
-        let lower_y = 200.0;
-        let upper_x = screen_width() - 200.0 + 10.0;
-        let upper_y = screen_height() - 200.0 + 10.0;
-
-        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
-            let row = ((y - lower_y) / STEP as f32) as usize;
-            let col = ((x - lower_x) / STEP as f32) as usize;
+        if (self.consts.board_lower.0..=self.consts.board_upper.0).contains(&x)
+            && (self.consts.board_lower.1..=self.consts.board_upper.1).contains(&y)
+        {
+            let row = ((y - self.consts.board_lower.1) / self.consts.step as f32) as usize;
+            let col = ((x - self.consts.board_lower.0) / self.consts.step as f32) as usize;
             if self.board[row][col].is_some() {
                 player.tiles.push(self.board[row][col].unwrap());
                 self.board[row][col] = None;
@@ -269,14 +352,11 @@ impl Board {
             return;
         }
 
-        let lower_x = 200.0;
-        let lower_y = 200.0;
-        let upper_x = screen_width() - 200.0 + 10.0;
-        let upper_y = screen_height() - 200.0 + 10.0;
-
-        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
-            let row = ((y - lower_y) / STEP as f32) as usize;
-            let col = ((x - lower_x) / STEP as f32) as usize;
+        if (self.consts.board_lower.0..=self.consts.board_upper.0).contains(&x)
+            && (self.consts.board_lower.1..=self.consts.board_upper.1).contains(&y)
+        {
+            let row = ((y - self.consts.board_lower.1) / self.consts.step as f32) as usize;
+            let col = ((x - self.consts.board_lower.0) / self.consts.step as f32) as usize;
             if let Some(tile) = self.board[row][col] {
                 if let SelectedTile::Board(selected_row, selected_col) = self.selected_tile {
                     let tmp = self.board[selected_row][selected_col];
@@ -293,27 +373,22 @@ impl Board {
             return;
         }
 
-        let len = player.tiles.len() as f32;
-        let lower_x =
-            screen_width() / 2.0 - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE);
-        let upper_x = lower_x + len * STEP + (len - 1.0) * LETTER_SPACE;
-
-        let lower_y = screen_height() - 2.0 * STEP;
-        let upper_y = lower_y + STEP;
-
-        if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+        if (self.consts.rack_lower.0..=self.consts.rack_upper.0).contains(&x)
+            && (self.consts.rack_lower.1..=self.consts.rack_upper.1).contains(&y)
+        {
             for (i, _) in player.tiles.iter().enumerate() {
                 let i = i as f32;
                 let len = player.tiles.len() as f32;
                 let lower_x = screen_width() / 2.0
-                    - ((len / 2.0) * STEP + ((len - 1.0) / 2.0) * LETTER_SPACE)
-                    + i * STEP
-                    + i * LETTER_SPACE;
-                let lower_y = screen_height() - 2.0 * STEP;
-                let upper_x = lower_x + STEP;
-                let upper_y = lower_y + STEP;
+                    - ((len / 2.0) * self.consts.step
+                        + ((len - 1.0) / 2.0) * self.consts.letter_space)
+                    + i * self.consts.step
+                    + i * self.consts.letter_space;
+                let upper_x = lower_x + self.consts.step;
 
-                if (lower_x..=upper_x).contains(&x) && (lower_y..=upper_y).contains(&y) {
+                if (lower_x..=upper_x).contains(&x)
+                    && (self.consts.rack_lower.1..=self.consts.rack_upper.1).contains(&y)
+                {
                     if let SelectedTile::Rack(tile) = self.selected_tile {
                         player.tiles.swap(i as usize, tile);
                         self.selected_tile = SelectedTile::Rack(i as usize);

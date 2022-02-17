@@ -20,7 +20,7 @@ fn window_conf() -> Conf {
         window_title: "Scrabble".to_owned(),
         window_width: 1200,
         window_height: 1200,
-        window_resizable: false,
+        //window_resizable: false,
         ..Default::default()
     }
 }

@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::game::board::{LETTER_SIZE, STEP};
+use crate::game::board::Consts;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[rustfmt::skip]
@@ -51,15 +51,15 @@ impl Tile {
         .iter()
     }
 
-    pub fn draw(&self, x: f32, y: f32, background: Color) {
+    pub fn draw(&self, x: f32, y: f32, background: Color, consts: &Consts) {
         let text = self.into();
-        let text_size = measure_text(text, None, LETTER_SIZE as u16, 1.0);
-        draw_rectangle(x, y, STEP, STEP, background);
+        let text_size = measure_text(text, None, consts.letter_size as u16, 1.0);
+        draw_rectangle(x, y, consts.step, consts.step, background);
         draw_text(
             text,
-            x + STEP / 2.0 - text_size.width / 2.0,
-            y + STEP / 2.0 + text_size.height / 2.0,
-            LETTER_SIZE,
+            x + consts.step / 2.0 - text_size.width / 2.0,
+            y + consts.step / 2.0 + text_size.height / 2.0,
+            consts.letter_size,
             DARKGRAY,
         );
     }
