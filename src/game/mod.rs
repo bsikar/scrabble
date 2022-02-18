@@ -1,7 +1,7 @@
 use ::rand;
-use hashbrown::HashSet;
 use macroquad::prelude::*;
 use rust_embed::RustEmbed;
+use std::collections::HashSet;
 use std::io::{BufRead, BufReader};
 
 #[derive(RustEmbed)]
